@@ -12,6 +12,10 @@ const args = process.argv.slice(2);
 const portIndex = args.indexOf('--port');
 const wanted = portIndex === -1 ? 8080 : Number(args[portIndex + 1]);
 const port = Number.isInteger(wanted) && wanted > 0 && wanted < 65536 ? wanted : 8080;
+// Bind address: 127.0.0.1 by default; pass --host 0.0.0.0 to play from another
+// device on the same network (the game itself still makes no network requests).
+const hostIndex = args.indexOf('--host');
+const host = hostIndex === -1 ? '127.0.0.1' : args[hostIndex + 1] || '127.0.0.1';
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -60,6 +64,6 @@ createServer((request, response) => {
     'cache-control': 'no-store',
   });
   createReadStream(file).pipe(response);
-}).listen(port, '127.0.0.1', () => {
-  console.log(`game/ is on http://localhost:${port}`);
+}).listen(port, host, () => {
+  console.log(`game/ is on http://${host}:${port}`);
 });

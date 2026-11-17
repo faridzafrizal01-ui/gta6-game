@@ -3,147 +3,122 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Vice Shores — Open World Crime</title>
+<link rel="icon" href="data:,">
+<title>Vice Shores — Open-World Crime</title>
 <style>
   html, body { margin: 0; height: 100%; overflow: hidden; background: #0b0e14;
-    font-family: "Segoe UI", system-ui, -apple-system, Arial, sans-serif; color: #f2f2f2; }
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color: #eef1f5; }
   #game { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
-  #status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   .hidden { display: none !important; }
-
-  /* ---------- HUD ---------- */
+  /* HUD */
   #hud { position: fixed; inset: 0; pointer-events: none; z-index: 5; }
-  #topleft { position: absolute; top: 14px; left: 14px; }
-  .pill { background: rgba(8,10,16,.72); border: 1px solid rgba(255,255,255,.14);
-    border-radius: 8px; padding: 6px 10px; margin-bottom: 6px; font-size: 14px; min-width: 170px; }
-  #cash { font-size: 20px; font-weight: 700; color: #7dff9b; letter-spacing: .5px; }
-  .bar { height: 8px; background: rgba(255,255,255,.15); border-radius: 4px; margin-top: 4px; overflow: hidden; }
-  .bar > div { height: 100%; border-radius: 4px; }
-  #healthfill { background: linear-gradient(90deg,#ff5a5a,#ff8a5a); width: 100%; }
-  #armorfill { background: linear-gradient(90deg,#5aa8ff,#7fd4ff); width: 0%; }
-  #healthlbl, #armorlbl { font-size: 11px; color: #cfd3da; letter-spacing: 1px; }
-  #wanted { position: absolute; top: 14px; right: 16px; font-size: 30px; letter-spacing: 4px;
-    color: #ffd23e; text-shadow: 0 0 10px rgba(0,0,0,.8); }
-  #wanted .dim { color: rgba(255,255,255,.22); }
-  #clock { position: absolute; top: 58px; right: 18px; font-size: 15px; font-weight: 600;
-    background: rgba(8,10,16,.72); border: 1px solid rgba(255,255,255,.14); border-radius: 8px; padding: 5px 10px; }
-  #ammo { position: absolute; right: 16px; bottom: 92px; font-size: 18px; font-weight: 700;
-    background: rgba(8,10,16,.72); border: 1px solid rgba(255,255,255,.14); border-radius: 8px; padding: 6px 12px; }
-  #speedo { position: absolute; right: 16px; bottom: 16px; text-align: right; }
-  #speedo b { font-size: 34px; }
-  #speedo span { font-size: 13px; color: #cfd3da; }
-  #objective { position: absolute; left: 50%; transform: translateX(-50%); bottom: 18px; max-width: 520px;
-    text-align: center; background: rgba(8,10,16,.72); border: 1px solid rgba(255,210,62,.35);
-    border-radius: 8px; padding: 8px 14px; font-size: 15px; }
-  #objective b { color: #ffd23e; }
-  #msg { position: absolute; left: 14px; bottom: 16px; max-width: 340px; font-size: 14px; }
-  #msg div { background: rgba(8,10,16,.66); border-radius: 6px; padding: 4px 8px; margin-top: 4px; }
-  #crosshair { position: absolute; left: 50%; top: 50%; width: 18px; height: 18px; margin: -9px 0 0 -9px; }
-  #crosshair:before, #crosshair:after { content: ""; position: absolute; background: #fff; box-shadow: 0 0 3px #000; }
-  #crosshair:before { left: 8px; top: 0; width: 2px; height: 18px; }
-  #crosshair:after { left: 0; top: 8px; width: 18px; height: 2px; }
-  #interact { position: absolute; left: 50%; top: 58%; transform: translateX(-50%);
-    background: rgba(8,10,16,.8); border: 1px solid #ffd23e; border-radius: 8px; padding: 7px 12px; font-size: 15px; }
-  #interact b { color: #ffd23e; }
-  #minimap { position: absolute; left: 14px; bottom: 118px; border: 2px solid rgba(255,255,255,.35);
-    border-radius: 50%; background: #101623; box-shadow: 0 0 14px rgba(0,0,0,.6); }
-  #progress { position: absolute; left: 50%; top: 22%; transform: translateX(-50%); width: 340px; text-align: center; }
-  #progress .bar { height: 12px; border: 1px solid rgba(255,255,255,.4); }
-  #progressfill { background: #ffd23e; width: 0%; }
-  #progresslbl { font-size: 15px; font-weight: 700; text-shadow: 0 1px 4px #000; margin-bottom: 6px; }
-  #vignette { position: fixed; inset: 0; pointer-events: none; z-index: 4;
-    background: radial-gradient(ellipse at center, transparent 55%, rgba(200,0,0,.55) 100%); opacity: 0; transition: opacity .3s; }
-  #hint { position: absolute; left: 50%; bottom: 74px; transform: translateX(-50%); font-size: 12px;
-    color: rgba(255,255,255,.75); text-shadow: 0 1px 3px #000; white-space: nowrap; }
-
-  /* ---------- Overlays ---------- */
-  .overlay { position: fixed; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center;
-    background: radial-gradient(ellipse at 50% 30%, rgba(20,28,48,.88), rgba(4,6,10,.96)); }
-  .panel { text-align: center; max-width: 640px; padding: 24px; }
-  .panel h1 { font-size: 64px; margin: 0; letter-spacing: 4px; font-weight: 900;
-    background: linear-gradient(180deg, #ffe27a, #ff9d2e 55%, #ff4d6d); -webkit-background-clip: text; background-clip: text; color: transparent;
-    text-shadow: 0 4px 30px rgba(255,120,40,.25); }
-  .panel h2 { font-size: 18px; margin: 2px 0 14px; letter-spacing: 6px; color: #9fd8ff; font-weight: 600; }
-  .panel p { font-size: 15px; line-height: 1.55; color: #d7dbe2; }
-  .panel .controls { font-size: 13.5px; line-height: 1.9; color: #b9bec8; text-align: left;
-    display: inline-block; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12);
-    border-radius: 10px; padding: 10px 18px; margin: 10px 0 18px; }
-  .panel .controls b { color: #ffd23e; }
-  button { pointer-events: auto; cursor: pointer; font-size: 17px; font-weight: 700; letter-spacing: 1px;
-    color: #111; background: linear-gradient(180deg,#ffe27a,#ffb02e); border: 0; border-radius: 10px;
-    padding: 12px 30px; margin: 4px 6px; box-shadow: 0 4px 18px rgba(255,160,40,.35); }
-  button:hover { filter: brightness(1.08); }
-  button.ghost { background: rgba(255,255,255,.12); color: #f2f2f2; box-shadow: none; border: 1px solid rgba(255,255,255,.25); }
-  .big { font-size: 52px; font-weight: 900; letter-spacing: 3px; margin: 0; }
-  #endtitle.wasted { color: #ff4d4d; } #endtitle.busted { color: #5aa8ff; }
-  #endsub { font-size: 16px; color: #d7dbe2; }
-  .foot { margin-top: 18px; font-size: 12px; color: #8a90a0; }
+  #top-right { position: absolute; top: 14px; right: 16px; text-align: right; }
+  #cash { font-size: 30px; font-weight: 800; color: #7dff8a; text-shadow: 0 2px 6px #000; }
+  #clock { font-size: 20px; font-weight: 700; text-shadow: 0 2px 6px #000; }
+  #stars { font-size: 26px; letter-spacing: 3px; color: #ffd23a; text-shadow: 0 2px 6px #000; }
+  #stars.hot { animation: blink 0.7s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: 0.45; } }
+  #objective { position: absolute; top: 14px; left: 16px; max-width: 430px; font-size: 16px;
+    font-weight: 600; background: rgba(0,0,0,0.55); padding: 10px 14px; border-radius: 8px;
+    border-left: 4px solid #ffd23a; }
+  #bottom-left { position: absolute; left: 16px; bottom: 16px; width: 220px; }
+  .bar-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 13px; font-weight: 700; }
+  .bar { flex: 1; height: 12px; background: rgba(0,0,0,0.6); border-radius: 6px; overflow: hidden; }
+  .bar > div { height: 100%; }
+  #health-fill { background: #e5484d; width: 100%; }
+  #armor-fill { background: #4a9eda; width: 0%; }
+  #speed { position: absolute; right: 16px; bottom: 16px; font-size: 26px; font-weight: 800;
+    text-shadow: 0 2px 6px #000; }
+  #ammo { position: absolute; right: 16px; bottom: 52px; font-size: 18px; font-weight: 700;
+    text-shadow: 0 2px 6px #000; }
+  #minimap { position: absolute; right: 16px; bottom: 92px; width: 168px; height: 168px;
+    border-radius: 50%; background: rgba(0,0,0,0.35); }
+  #crosshair { position: absolute; left: 50%; top: 50%; width: 22px; height: 22px; margin: -11px 0 0 -11px;
+    font-size: 22px; line-height: 1; text-align: center; color: #fff; text-shadow: 0 0 4px #000; opacity: 0.85; }
+  #crosshair.pulse { animation: pulse 0.18s ease-out; }
+  @keyframes pulse { 0% { transform: scale(1.7); } 100% { transform: scale(1); } }
+  #toast { position: absolute; left: 50%; bottom: 110px; transform: translateX(-50%);
+    background: rgba(0,0,0,0.7); padding: 9px 18px; border-radius: 20px; font-size: 15px;
+    font-weight: 600; opacity: 0; transition: opacity 0.3s; white-space: nowrap; }
+  #toast.show { opacity: 1; }
+  #controls-hint { position: absolute; left: 16px; bottom: 96px; font-size: 12px; color: #cfd6e2;
+    text-shadow: 0 1px 4px #000; line-height: 1.6; }
+  /* Screens */
+  .screen { position: fixed; inset: 0; z-index: 10; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; text-align: center;
+    background: linear-gradient(180deg, rgba(8,10,24,0.82), rgba(24,8,32,0.88)); }
+  .screen h1 { font-size: 64px; margin: 0; letter-spacing: 4px;
+    background: linear-gradient(90deg, #ff9a3d, #ff4d6d, #b04dff);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    text-shadow: 0 4px 30px rgba(255,80,120,0.35); }
+  .screen h2 { font-size: 20px; font-weight: 400; color: #ffd23a; margin: 8px 0 26px; letter-spacing: 2px; }
+  .screen p { max-width: 560px; line-height: 1.6; color: #d5dae3; margin: 0 0 22px; }
+  .btn { pointer-events: auto; cursor: pointer; border: none; border-radius: 10px; padding: 13px 30px;
+    font-size: 17px; font-weight: 700; color: #111; background: #ffd23a; margin: 6px; }
+  .btn:hover { background: #ffe06a; }
+  .btn.secondary { background: #2a3040; color: #eef1f5; }
+  .btn:disabled { opacity: 0.45; cursor: default; }
+  #howto { max-width: 560px; text-align: left; background: rgba(0,0,0,0.5); padding: 14px 20px;
+    border-radius: 10px; line-height: 1.8; font-size: 14px; margin-bottom: 14px; }
+  #over-title { font-size: 72px; letter-spacing: 8px; color: #ff2e2e; margin: 0; }
+  #over-sub { font-size: 18px; color: #d5dae3; }
+  #status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 </style>
 </head>
 <body>
-<canvas id="game" aria-label="Vice Shores: an open-world crime game. Drive, steal cars, dodge the police and finish story missions."></canvas>
+<canvas id="game" aria-label="Vice Shores: an open-world crime game. Steal cars, outrun the police, run four story missions."></canvas>
 <p id="status" role="status" aria-live="polite"></p>
-<div id="vignette"></div>
 
-<div id="hud" class="hidden">
-  <div id="topleft">
-    <div class="pill"><div id="cash">$0</div>
-      <div id="healthlbl">HEALTH</div><div class="bar"><div id="healthfill"></div></div>
-      <div id="armorlbl">ARMOR</div><div class="bar"><div id="armorfill"></div></div>
-    </div>
+<div id="hud">
+  <div id="objective">Welcome to Vice Shores.</div>
+  <div id="top-right">
+    <div id="cash">$250</div>
+    <div id="clock">08:24</div>
+    <div id="stars">☆☆☆☆☆</div>
   </div>
-  <div id="wanted"></div>
-  <div id="clock">10:00</div>
-  <div id="ammo" class="hidden">🔫 12 / ∞</div>
-  <canvas id="minimap" width="190" height="190"></canvas>
-  <div id="objective" class="hidden"></div>
-  <div id="progress" class="hidden"><div id="progresslbl"></div><div class="bar"><div id="progressfill"></div></div></div>
-  <div id="msg"></div>
-  <div id="crosshair" class="hidden"></div>
-  <div id="interact" class="hidden"></div>
-  <div id="speedo" class="hidden"><b>0</b> <span>mph</span></div>
-  <div id="hint">WASD move / drive &nbsp;·&nbsp; E enter car &nbsp;·&nbsp; Click / F shoot &nbsp;·&nbsp; R reload &nbsp;·&nbsp; Shift sprint &nbsp;·&nbsp; P pause &nbsp;·&nbsp; M mute</div>
+  <div id="bottom-left">
+    <div class="bar-row"><span>HP</span><div class="bar"><div id="health-fill"></div></div></div>
+    <div class="bar-row"><span>ARMOR</span><div class="bar"><div id="armor-fill"></div></div></div>
+  </div>
+  <div id="controls-hint">WASD move / drive &nbsp;·&nbsp; E enter car / interact<br>
+    Click shoot &nbsp;·&nbsp; R reload &nbsp;·&nbsp; Space brake<br>
+    Shift run &nbsp;·&nbsp; P pause &nbsp;·&nbsp; M mute &nbsp;·&nbsp; drag mouse to look</div>
+  <div id="speed"></div>
+  <div id="ammo"></div>
+  <canvas id="minimap" width="168" height="168"></canvas>
+  <div id="crosshair">＋</div>
+  <div id="toast"></div>
 </div>
 
-<div id="title" class="overlay">
-  <div class="panel">
-    <h1>VICE SHORES</h1>
-    <h2>OPEN WORLD &nbsp;·&nbsp; CRIME &nbsp;·&nbsp; NEON CITY</h2>
-    <p>You are <b>Jax Moreno</b>, fresh out of lockup and broke in Vice Shores — a sun-baked
-    coastal city run by crews, cops and bad decisions. Steal cars, outrun the law, take jobs
-    from the fixer <b>Delia Voss</b> and pull the score that buys you a way out. Four story
-    missions, a living city, and a wanted level that only goes up.</p>
-    <div class="controls">
-      <b>W A S D</b> — move / drive &nbsp;&nbsp; <b>Mouse</b> — look (drag) &nbsp;&nbsp; <b>E</b> — enter / exit car, pick up<br>
-      <b>Click / F</b> — shoot &nbsp;&nbsp; <b>R</b> — reload &nbsp;&nbsp; <b>Space</b> — handbrake / jump<br>
-      <b>Shift</b> — sprint &nbsp;&nbsp; <b>P / Esc</b> — pause &nbsp;&nbsp; <b>M</b> — mute &nbsp;&nbsp; <b>C</b> — camera
-    </div>
-    <div>
-      <button id="btnstart">▶ &nbsp;NEW GAME</button>
-      <button id="btncontinue" class="ghost hidden">CONTINUE</button>
-    </div>
-    <div class="foot">Plays fully offline in your browser · progress saves automatically · headphones on 🎧</div>
+<div id="start-screen" class="screen">
+  <h1>VICE SHORES</h1>
+  <h2>AN OPEN-WORLD CRIME STORY</h2>
+  <p>Welcome to Vice Shores — a sun-bleached coastal city where every parked car is
+    an opportunity and every siren is a warning. Steal cars, outrun the police,
+    and run four story missions from a hot-wired joyride to the big bank score.</p>
+  <div>
+    <button id="btn-new" class="btn">▶ New Game</button>
+    <button id="btn-continue" class="btn secondary">Continue</button>
+    <button id="btn-how" class="btn secondary">How to play</button>
   </div>
+  <div id="howto" class="hidden">
+    <b>WASD</b> — walk / drive &nbsp;·&nbsp; <b>E</b> — enter a car, grab a package, crack the vault (hold)<br>
+    <b>Click</b> — shoot (aim with the mouse) &nbsp;·&nbsp; <b>R</b> — reload &nbsp;·&nbsp; <b>Space</b> — brake<br>
+    <b>Shift</b> — sprint &nbsp;·&nbsp; <b>P</b> — pause &nbsp;·&nbsp; <b>M</b> — mute &nbsp;·&nbsp; drag mouse to look around<br>
+    Stars rise when you steal, shoot or hit pedestrians. At 3+ stars, officers on foot will try to arrest you.
+    Health and armour pickups are scattered around the city. Progress saves automatically.
+  </div>
+  <p style="font-size:13px;color:#9aa3b2">Plays fully offline in your browser. No account, no download, no network.</p>
 </div>
 
-<div id="pause" class="overlay hidden">
-  <div class="panel">
-    <h2 style="font-size:34px; letter-spacing:4px;">PAUSED</h2>
-    <p id="pausestats"></p>
-    <div><button id="btnresume">RESUME</button>
-    <button id="btnrestart" class="ghost">RESTART</button>
-    <button id="btnquit" class="ghost">QUIT TO TITLE</button></div>
-    <div class="foot">Progress is saved automatically when you finish a mission or pick up cash.</div>
-  </div>
+<div id="pause-screen" class="screen hidden">
+  <h1 style="font-size:44px">PAUSED</h1>
+  <p>Press P to keep playing. Your progress is saved automatically.</p>
 </div>
 
-<div id="end" class="overlay hidden">
-  <div class="panel">
-    <div id="endtitle" class="big wasted">WASTED</div>
-    <p id="endsub"></p>
-    <div><button id="btnrespawn">RESPAWN — $200 FINE</button>
-    <button id="btnendquit" class="ghost">QUIT TO TITLE</button></div>
-  </div>
+<div id="over-screen" class="screen hidden">
+  <h1 id="over-title">WASTED</h1>
+  <p id="over-sub"></p>
 </div>
 
 <script type="module" src="./src/main.js"></script>
