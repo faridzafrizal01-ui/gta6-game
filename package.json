@@ -1,0 +1,1 @@
+{"description":"Vice Shores — an open-world crime game for make.fun's gta6-01 bounty","license":"MIT","name":"gta6-game","private":true,"scripts":{"dossier":"node main.ts","shots":"node tools/shots.mjs","start":"node serve.ts"},"type":"module","version":"1.0.0"}
